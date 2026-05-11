@@ -1,48 +1,43 @@
-iimport express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
-import twilio from "twilio";
-
-dotenv.config();
+const express = require("express");
+const twilio = require("twilio");
+const cors = require("cors");
 
 const app = express();
 
 app.use(cors());
-app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.json({
-    status: "Dripline backend running"
-  });
+  res.send("Dripline backend running");
 });
 
 app.post("/webhook", (req, res) => {
-  const incoming = (req.body.Body || "").toLowerCase();
+  const incoming = req.body.Body?.toLowerCase() || "";
 
-  console.log("Incoming SMS:", req.body.Body);
+  console.log("Incoming SMS:", incoming);
 
   const twiml = new twilio.twiml.MessagingResponse();
 
   if (incoming.includes("menu")) {
     twiml.message(
-      "🔥 Detroit Seafood Spot 🔥\n2 for $60 Seafood Boils\nPretty Girls Happy Hour 5PM-10PM\nOrder now:\nhttps://detroitseafoodspot.com"
+      "🔥 Detroit Seafood Spot Menu:\nhttps://detroitseafoodspot.com"
     );
   } else if (incoming.includes("hours")) {
     twiml.message(
-      "Detroit Seafood Spot is open today. Order online:\nhttps://detroitseafoodspot.com"
+      "⏰ Open Daily • Happy Hour 5PM-10PM"
     );
   } else {
     twiml.message(
-      "Thanks for texting Detroit Seafood Spot! Reply MENU for specials or HOURS for today’s info."
+      "👋 Welcome to Detroit Seafood Spot! Reply MENU or HOURS."
     );
   }
 
-  res.type("text/xml");
-  res.send(twiml.toString());
+  res.writeHead(200, { "Content-Type": "text/xml" });
+  res.end(twiml.toString());
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
