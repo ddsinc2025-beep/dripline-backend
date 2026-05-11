@@ -1,6 +1,7 @@
-import express from "express";
+iimport express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import twilio from "twilio";
 
 dotenv.config();
 
@@ -17,17 +18,28 @@ app.get("/", (req, res) => {
 });
 
 app.post("/webhook", (req, res) => {
-  const incomingMessage = req.body.Body || "No message received";
+  const incoming = (req.body.Body || "").toLowerCase();
 
-  console.log("Incoming SMS:", incomingMessage);
+  console.log("Incoming SMS:", req.body.Body);
 
-  const reply = `
-<Response>
-  <Message>Dripline received your message: ${incomingMessage}</Message>
-</Response>`;
+  const twiml = new twilio.twiml.MessagingResponse();
+
+  if (incoming.includes("menu")) {
+    twiml.message(
+      "🔥 Detroit Seafood Spot 🔥\n2 for $60 Seafood Boils\nPretty Girls Happy Hour 5PM-10PM\nOrder now:\nhttps://detroitseafoodspot.com"
+    );
+  } else if (incoming.includes("hours")) {
+    twiml.message(
+      "Detroit Seafood Spot is open today. Order online:\nhttps://detroitseafoodspot.com"
+    );
+  } else {
+    twiml.message(
+      "Thanks for texting Detroit Seafood Spot! Reply MENU for specials or HOURS for today’s info."
+    );
+  }
 
   res.type("text/xml");
-  res.send(reply);
+  res.send(twiml.toString());
 });
 
 const PORT = process.env.PORT || 3000;
